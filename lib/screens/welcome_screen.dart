@@ -19,9 +19,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           Expanded(
             flex: 3,
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: kStartColor,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                     bottomRight: Radius.circular(40.0),
                     bottomLeft: Radius.circular(40.0)),
               ),
@@ -38,42 +38,44 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           Expanded(
             flex: 1,
-            child: Container(
-              margin: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'WELCOME',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: kTextColor,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10.0),
-                  Text(
-                    'Just a click away from \n planning your tasks',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 17,
-                        fontWeight: FontWeight.normal),
-                  ),
-                  const SizedBox(height: 14.0),
-                  RoundButton(
-                    text: 'Get Started!',
-                    backgroundColor: kStartColor,
-                    colorText: Colors.white,
-                    onPress: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const LogInScreen()));
-                    },
-                  ),
-                ],
+            child: SingleChildScrollView(
+              child: Container(
+                margin: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'WELCOME',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: kTextColor,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10.0),
+                    Text(
+                      'Just a click away from \n planning your tasks',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 17,
+                          fontWeight: FontWeight.normal),
+                    ),
+                    const SizedBox(height: 14.0),
+                    RoundButton(
+                      text: 'Get Started!',
+                      backgroundColor: kStartColor,
+                      colorText: Colors.white,
+                      onPress: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const LogInScreen()));
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

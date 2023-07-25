@@ -28,6 +28,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   File? _pickedImage;
 
   void _register() async {
+    if (_pickedImage == null) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Please pick an image for your profile')));
+      return;
+    }
+
     if (_formKey.currentState!.validate() && _pickedImage != null) {
       _formKey.currentState!.save();
 
@@ -89,7 +96,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
+                  const Text(
                     'Register Now',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -109,7 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         children: [
                           InputFormField(
-                            label: '',
+                            initialValue: '',
                             hint: 'Usermail@example.com',
                             textInputType: TextInputType.emailAddress,
                             prefixIcon: const Icon(
@@ -132,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 10.0),
                           InputFormField(
-                            label: 'Your Name',
+                            initialValue: '',
                             hint: 'UserName',
                             prefixIcon: const Icon(
                               Icons.person,
@@ -155,7 +162,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 10.0),
                           InputFormField(
-                            label: 'Phone',
+                            initialValue: '',
                             hint: 'Phone Number',
                             prefixIcon: const Icon(
                               Icons.phone,
@@ -178,7 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 10.0),
                           InputFormField(
-                            label: '',
+                            initialValue: '',
                             hint: 'Password',
                             obscureText: true,
                             textInputType: TextInputType.text,
@@ -223,7 +230,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return const LogInScreen();
                       }));
                     },
-                    child: Text(
+                    child: const Text(
                       "Login",
                       style: TextStyle(color: kStartColor),
                     )),

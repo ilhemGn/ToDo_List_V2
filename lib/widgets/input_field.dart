@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:todo_list_v2/constants.dart';
 
 class InputFormField extends StatelessWidget {
-  final String label;
+  final String? initialValue;
   final String hint;
   final Icon? prefixIcon;
   final bool obscureText;
@@ -14,7 +14,7 @@ class InputFormField extends StatelessWidget {
 
   const InputFormField({
     super.key,
-    required this.label,
+    this.initialValue,
     required this.hint,
     this.prefixIcon,
     this.obscureText = false,
@@ -29,6 +29,8 @@ class InputFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       TextFormField(
+        initialValue: initialValue,
+        textCapitalization: TextCapitalization.sentences,
         obscureText: obscureText,
         decoration: InputDecoration(
           hintText: hint,

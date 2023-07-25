@@ -64,7 +64,7 @@ class _LogInScreenState extends State<LogInScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 10.0),
-                Center(
+                const Center(
                   child: Text(
                     'Sign In',
                     style: TextStyle(
@@ -79,7 +79,7 @@ class _LogInScreenState extends State<LogInScreen> {
                     child: Column(
                       children: [
                         InputFormField(
-                          label: '',
+                          initialValue: '',
                           hint: 'Usermail@example.com',
                           textInputType: TextInputType.emailAddress,
                           prefixIcon: const Icon(
@@ -102,7 +102,7 @@ class _LogInScreenState extends State<LogInScreen> {
                         ),
                         const SizedBox(height: 10.0),
                         InputFormField(
-                          label: '',
+                          initialValue: '',
                           hint: 'Password',
                           obscureText: true,
                           textInputType: TextInputType.text,
@@ -143,7 +143,7 @@ class _LogInScreenState extends State<LogInScreen> {
                     ),
                     TextButton(
                       onPressed: () {},
-                      child: Text(
+                      child: const Text(
                         "Forget Password",
                         style: TextStyle(fontSize: 13, color: kStartColor),
                       ),

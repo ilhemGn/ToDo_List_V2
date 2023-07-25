@@ -1,23 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list_v2/constants.dart';
+import 'package:todo_list_v2/models/task_model.dart';
+import 'package:todo_list_v2/providers/user_provider.dart';
 import 'package:todo_list_v2/screens/profile_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_list_v2/screens/task_details.dart';
 import 'package:todo_list_v2/widgets/tasks_list.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:todo_list_v2/providers/tasks_provider.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({
     super.key,
   });
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  String? name;
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  late List<Task> userTasks;
+
+  @override
+  void initState() {
+    _getUserData();
+    super.initState();
+  }
+
+  void _getUserData() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    //get userData from firestore
+    final userData = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser!.uid)
+        .get();
+    //update user data in provider
+    ref.read(userProvider.notifier).changeAllUserData(
+        userData.data()!['username'],
+        userData.data()!['email'],
+        int.parse(userData.data()!['phone']),
+        userData.data()!['image']);
+
+    //verify if the user has tasks or not
+    final taskCol = FirebaseFirestore.instance
+        .collection('tasks')
+        .where('userId', isEqualTo: currentUser.uid);
+
+    if ((await taskCol.get()).docs.isNotEmpty) {
+      //get user tasks from firestore
+      final userTasks = await taskCol.get();
+      //update user tasks in provider
+      ref.read(userTasksProvider.notifier).loadUserTasks(userTasks);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    String username = ref.watch(userProvider).name;
+    String userImage = ref.watch(userProvider).image;
+    userTasks = ref.watch(userTasksProvider);
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color(0xFFEDEFF2),
@@ -41,20 +83,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(6),
                   child: Center(
                     child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Color(0xFFF5E2CA),
-                        child: Icon(Icons.person, color: Colors.white),
+                      leading: CircleAvatar(
+                        backgroundColor: kStartColor,
+                        backgroundImage: NetworkImage(userImage),
+                        child: const Icon(Icons.person, color: Colors.white),
                       ),
-                      title: Text('Hi ${name ?? 'no name'}',
-                          style: kStyleAppBarTitle),
-                      subtitle: name != null
-                          ? const Text('Good Morning')
-                          : const Text(
-                              "please complete your profile",
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold),
-                            ),
+                      title: Text('Hi $username', style: kStyleAppBarTitle),
+                      subtitle: const Text('Good Morning'),
                       trailing: const Icon(
                         Icons.arrow_forward_ios,
                         size: 18,
@@ -110,8 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              const Expanded(
-                child: TasksList(),
+              Expanded(
+                child: TasksList(
+                  todos: userTasks,
+                ),
               )
             ],
           ),

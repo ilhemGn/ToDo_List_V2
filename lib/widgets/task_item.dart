@@ -5,7 +5,8 @@ class TaskItem extends StatelessWidget {
   final Color coulour;
   final bool isChecked;
   final String title;
-  final String time;
+  final String startTime;
+  final String endTime;
   final void Function() pressFunct;
   final void Function(bool?) checkboxCallback;
   final void Function() deleteFunct;
@@ -15,7 +16,8 @@ class TaskItem extends StatelessWidget {
       required this.coulour,
       required this.isChecked,
       required this.title,
-      required this.time,
+      required this.startTime,
+      required this.endTime,
       required this.pressFunct,
       required this.checkboxCallback,
       required this.deleteFunct});
@@ -74,7 +76,7 @@ class TaskItem extends StatelessWidget {
                     const SizedBox(
                       width: 10,
                     ),
-                    Text(time),
+                    Text('$startTime - $endTime'),
                   ],
                 ),
                 Checkbox(

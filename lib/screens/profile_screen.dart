@@ -1,19 +1,21 @@
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list_v2/constants.dart';
+import 'package:todo_list_v2/providers/user_provider.dart';
 import 'package:todo_list_v2/widgets/image_input.dart';
 import 'package:todo_list_v2/widgets/input_field.dart';
 import 'package:todo_list_v2/screens/setting_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   var _enteredName = '';
   var _enteredEmail = '';
   var _enteredPhone = '';
@@ -33,7 +35,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         await storageRef.putFile(_pickedImage!);
         final urlImage = await storageRef.getDownloadURL();
-        print(urlImage);
       } catch (error) {
         print(error);
       }
@@ -75,6 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPickImage: (selectedImage) {
                   _pickedImage = selectedImage;
                 },
+                firstImage: ref.watch(userProvider).image,
               ),
               const SizedBox(height: 20),
               Container(
@@ -100,7 +102,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 5),
                           InputFormField(
-                            label: 'Your Name',
+                            initialValue: ref.watch(userProvider).name,
                             hint: 'User name',
                             prefixIcon: const Icon(
                               Icons.person,
@@ -112,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               if (value == null ||
                                   value.isEmpty ||
                                   value.trim().length <= 1 ||
-                                  value.trim().length >= 50) {
+                                  value.trim().length >= 30) {
                                 return 'Please enter a valid name';
                               }
                               return null;
@@ -129,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 5),
                           InputFormField(
-                            label: 'Email',
+                            initialValue: ref.watch(userProvider).email,
                             hint: 'User@gmail.com',
                             prefixIcon: const Icon(
                               Icons.email,
@@ -157,7 +159,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 fontSize: 16, color: Color(0xFF5F5F5F)),
                           ),
                           InputFormField(
-                            label: 'Phone',
+                            initialValue:
+                                ref.watch(userProvider).phone.toString(),
                             hint: '201204999542',
                             prefixIcon: const Icon(
                               Icons.phone,
@@ -191,9 +194,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                       child: Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(20)),
+                          decoration: const BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
                             color: kFieldColor,
                           ),
                           child: const ListTile(

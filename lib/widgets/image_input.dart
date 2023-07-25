@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todo_list_v2/constants.dart';
 import 'package:image_picker/image_picker.dart';
+
 import 'dart:io';
 
 class ImageInput extends StatefulWidget {
-  ImageInput({super.key, required this.onPickImage, this.backgroundColor});
+  ImageInput(
+      {super.key,
+      required this.onPickImage,
+      this.backgroundColor,
+      this.firstImage});
 
   final void Function(File) onPickImage;
   Color? backgroundColor;
+  String? firstImage;
 
   @override
   State<ImageInput> createState() => _ImageInputState();
@@ -84,6 +90,8 @@ class _ImageInputState extends State<ImageInput> {
 
   @override
   Widget build(BuildContext context) {
+//ImageProvider<Object>? imageWidget= widget.firstImage!=null && _pickedImage==null ? Image.network(widget.firstImage!) : _pickedImage!=null ? Image.file(_pickedImage!):null;
+
     return Padding(
       padding: EdgeInsets.symmetric(
           vertical: widget.backgroundColor != null ? 20.0 : 50),
@@ -93,25 +101,22 @@ class _ImageInputState extends State<ImageInput> {
           CircleAvatar(
             radius: 50,
             backgroundColor: widget.backgroundColor ?? Colors.white,
-            backgroundImage:
-                _pickedImage != null ? FileImage(_pickedImage!) : null,
-            child: _pickedImage == null
-                ? const Icon(
-                    Icons.person,
-                    size: 60,
-                    color: Color.fromARGB(255, 210, 210, 210),
-                  )
-                : null,
+            //display first image if exist
+            backgroundImage: widget.firstImage != null && _pickedImage == null
+                ? NetworkImage(widget.firstImage!)
+                : _pickedImage != null
+                    ? FileImage(_pickedImage!) as ImageProvider
+                    : null,
           ),
           Positioned(
             bottom: 0,
             right: 0,
             child: GestureDetector(
               onTap: _pickImage,
-              child: CircleAvatar(
+              child: const CircleAvatar(
                 radius: 18,
                 backgroundColor: kStartColor,
-                child: const Icon(
+                child: Icon(
                   FontAwesomeIcons.camera,
                   color: Colors.white,
                   size: 18,

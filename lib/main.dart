@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_list_v2/constants.dart';
 import 'package:todo_list_v2/screens/home_screen.dart';
 import 'package:todo_list_v2/screens/welcome_screen.dart';
@@ -11,7 +12,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
           builder: ((context, snapshot) {
             // if (snapshot.connectionState == ConnectionState.waiting) {
             //   //Splash screen
-            // }     
+            // }
             if (snapshot.hasData) {
               return const HomeScreen();
             }

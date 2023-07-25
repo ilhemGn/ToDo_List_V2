@@ -1,54 +1,89 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:todo_list_v2/constants.dart';
+import 'package:todo_list_v2/models/task_model.dart';
 import 'package:todo_list_v2/widgets/input_field.dart';
-//import 'package:to_do_list/widgets/round_button.dart';
-
+import 'package:todo_list_v2/widgets/round_button.dart';
+import 'package:todo_list_v2/providers/tasks_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:todo_list_v2/widgets/task_color.dart';
 
-class TaskDetails extends StatefulWidget {
-  // final TodoModel? todoModel;
+final userId = FirebaseAuth.instance.currentUser!.uid;
+
+class TaskDetails extends ConsumerStatefulWidget {
   const TaskDetails({
     super.key,
-    //this.todoModel,
+    this.task,
   });
+  final Task? task;
 
   @override
-  State<TaskDetails> createState() => _TaskDetailsState();
+  ConsumerState<TaskDetails> createState() => _TaskDetailsState();
 }
 
-class _TaskDetailsState extends State<TaskDetails> {
-  TextEditingController taskNameController = TextEditingController();
-  TextEditingController taskDescriptionControllr = TextEditingController();
-  TextEditingController startTaskController = TextEditingController();
-  TextEditingController endTaskController = TextEditingController();
+class _TaskDetailsState extends ConsumerState<TaskDetails> {
+  final _formKey = GlobalKey<FormState>();
+  String _taskTitle = '';
+  //accept hour and minute
+  String _taskStartTime = '18:00';
+  String _taskEndTime = '19:00';
+  String _taskDescript = '';
 
-  @override
-  void initState() {
-    // if (widget.todoModel != null) {
-    //   taskNameController.text = widget.todoModel!.title;
-    //   taskDescriptionControllr.text = widget.todoModel!.description;
-    //   //cast startTaskController.text equal to string  widget.todoModel!.starting;
-    //cast endTaskController.text equal to string  widget.todoModel!.ending;
-    // }
+  int selectedIndex = 0;
+  void _addTask() {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      Navigator.pop(context);
+      Color taskColor = colors.elementAt(selectedIndex);
+      String hexColor = taskColor
+          .toString()
+          .replaceAll('Color', "")
+          .replaceAll("(", "")
+          .replaceAll(")", "");
+      Task newTask = Task(
+          id: userId + _taskTitle,
+          title: _taskTitle,
+          description: _taskDescript,
+          startTime: _taskStartTime,
+          endTime: _taskEndTime,
+          color: taskColor);
 
-    super.initState();
+      ref.read(userTasksProvider.notifier).addTask(newTask);
+      try {
+        //store new task in firestore
+        FirebaseFirestore.instance.collection('tasks').add({
+          'id': userId + _taskTitle,
+          'title': _taskTitle,
+          'description': _taskDescript,
+          'start time': _taskStartTime,
+          'end time': _taskEndTime,
+          'color': hexColor,
+          'isCompleted': false,
+          'userId': userId,
+        });
+      } catch (error) {
+        print(error);
+      }
+    }
+    return;
   }
+
+  List<Color> colors = const [
+    Color(0xFFFAD2D2),
+    Color(0xFFF2C552),
+    Color(0xFF5486E9),
+    Color(0xFF81DF96),
+    Color(0xFFE0BBF8)
+  ];
 
   @override
   Widget build(BuildContext context) {
-    List<Color> colors = const [
-      Color(0xFFFAD2D2),
-      Color(0xFFF2C552),
-      Color(0xFF5486E9),
-      Color(0xFF81DF96),
-      Color(0xFFE0BBF8)
-    ];
-    bool isSelected = true;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF5E2CA),
+      backgroundColor: kStartColor,
       appBar: AppBar(
         elevation: 0.0,
-        backgroundColor: const Color(0xFFF5E2CA),
+        backgroundColor: Colors.transparent,
         leading: IconButton(
             onPressed: () {
               Navigator.pop(context);
@@ -59,41 +94,51 @@ class _TaskDetailsState extends State<TaskDetails> {
       body: SafeArea(
         child: Column(
           children: [
-            Expanded(
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Add',
-                        style: TextStyle(
-                            fontSize: 30,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(20, 40, 20, 10),
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(55),
-                          topLeft: Radius.circular(55)),
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Add Task',
+                  style: TextStyle(
+                      fontSize: 30,
                       color: Colors.white,
-                    ),
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(20, 40, 20, 10),
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(55),
+                      topLeft: Radius.circular(55)),
+                  color: Colors.white,
+                ),
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         InputFormField(
-                          label: 'Task Name',
+                          initialValue: widget.task?.title ?? '',
                           hint: 'Workout for 30min',
                           prefixIcon: null,
                           textInputType: TextInputType.text,
-                          validator: (value) {},
-                          onSave: (value) {},
+                          validator: (value) {
+                            if (value == null ||
+                                value.isEmpty ||
+                                value.trim().length <= 1 ||
+                                value.trim().length >= 16) {
+                              return 'Please enter a valid title';
+                            }
+                            return null;
+                          },
+                          onSave: (value) {
+                            _taskTitle = value!;
+                          },
                         ),
                         const SizedBox(
                           height: 20,
@@ -103,30 +148,65 @@ class _TaskDetailsState extends State<TaskDetails> {
                           children: [
                             Flexible(
                               child: InputFormField(
-                                label: 'Start Time',
+                                initialValue: widget.task?.startTime ?? '',
                                 hint: '16:00',
                                 prefixIcon: null,
-                                textInputType: TextInputType.datetime,
+                                textInputType: TextInputType.text,
                                 suffixIcon: Icon(Icons.watch_later_outlined,
                                     color: Colors.grey.shade700, size: 20),
-                                validator: (value) {},
-                                onSave: (value) {},
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter a start time';
+                                  }
+                                  return null;
+                                },
+                                onSave: (value) {
+                                  _taskStartTime = value!;
+                                },
                               ),
                             ),
                             const SizedBox(width: 16),
                             Flexible(
                               child: InputFormField(
-                                label: 'End Time',
+                                initialValue: widget.task?.endTime ?? '',
                                 hint: '17:00',
                                 prefixIcon: null,
-                                textInputType: TextInputType.datetime,
+                                textInputType: TextInputType.text,
                                 suffixIcon: Icon(Icons.watch_later_outlined,
                                     color: Colors.grey.shade700, size: 20),
-                                validator: (value) {},
-                                onSave: (value) {},
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter a end time';
+                                  }
+                                  return null;
+                                },
+                                onSave: (value) {
+                                  _taskEndTime = value!;
+                                },
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 20),
+                        InputFormField(
+                          initialValue:
+                              widget.task?.description ?? 'tiktak.....',
+                          maxLines: 6,
+                          hint: 'Content....',
+                          prefixIcon: null,
+                          textInputType: TextInputType.text,
+                          validator: (value) {
+                            if (value == null ||
+                                value.isEmpty ||
+                                value.trim().length <= 1 ||
+                                value.trim().length >= 50) {
+                              return 'Please enter a discription';
+                            }
+                            return null;
+                          },
+                          onSave: (value) {
+                            _taskDescript = value!;
+                          },
                         ),
                         const SizedBox(height: 20),
                         const Text(
@@ -144,64 +224,30 @@ class _TaskDetailsState extends State<TaskDetails> {
                               itemCount: colors.length,
                               itemBuilder: (context, index) {
                                 return TaskColor(
-                                  isSelected: isSelected,
+                                  isSelected:
+                                      widget.task?.color == colors[index]
+                                          ? true
+                                          : selectedIndex == index &&
+                                                  widget.task == null
+                                              ? true
+                                              : false,
                                   color: colors[index],
                                   pressFunct: () {
                                     setState(() {
-                                      //selected color
-                                      // for (int i = 0; i < colors.length; i++) {
-                                      //   if (i != index) {
-                                      //     isSelected = false;
-                                      //   }
-                                      // }
+                                      selectedIndex = index;
                                     });
                                   },
                                 );
                               }),
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        InputFormField(
-                          label: 'Description',
-                          hint: 'Content....',
-                          prefixIcon: null,
-                          textInputType: TextInputType.text,
-                          validator: (value) {},
-                          onSave: (value) {},
-                        ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 40),
                         Align(
-                          alignment: Alignment.bottomRight,
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(15.0)),
-                              color: Color(0xFFF5E2CA),
-                            ),
-                            height: 50.0,
-                            width: 110.0,
-                            child: TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text(
-                                'Add',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.1,
-                        ),
+                            alignment: Alignment.bottomRight,
+                            child: RoundButton(text: 'Add', onPress: _addTask)),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ],
