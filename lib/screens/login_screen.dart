@@ -5,6 +5,9 @@ import 'package:todo_list_v2/screens/register_screen.dart';
 import 'package:todo_list_v2/widgets/input_field.dart';
 import 'package:todo_list_v2/widgets/round_button.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+final _firebase = FirebaseAuth.instance;
 
 class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});
@@ -17,6 +20,22 @@ class _LogInScreenState extends State<LogInScreen> {
   final _formKey = GlobalKey<FormState>();
   var _enteredEmail = '';
   var _enteredPassword = '';
+
+  void _signIn() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      try {
+        final userCredential = await _firebase.signInWithEmailAndPassword(
+            email: _enteredEmail, password: _enteredPassword);
+      } on FirebaseAuthException catch (error) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.message ?? 'Athentication failed')));
+      }
+    }
+    return;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +66,7 @@ class _LogInScreenState extends State<LogInScreen> {
                 const SizedBox(height: 10.0),
                 Center(
                   child: Text(
-                    'Sign In Now',
+                    'Sign In',
                     style: TextStyle(
                         color: kTextColor,
                         fontSize: 22,
@@ -136,13 +155,7 @@ class _LogInScreenState extends State<LogInScreen> {
                   text: 'Sign In!',
                   backgroundColor: kStartColor,
                   colorText: const Color(0xFF524E48),
-                  onPress: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-
-                      ///
-                    }
-                  },
+                  onPress: _signIn,
                 ),
               ],
             ),
@@ -152,9 +165,9 @@ class _LogInScreenState extends State<LogInScreen> {
               const Spacer(),
               IconButton(
                 onPressed: () {},
-                icon: CircleAvatar(
+                icon: const CircleAvatar(
                     backgroundColor: kFieldColor,
-                    child: const Icon(
+                    child: Icon(
                       FontAwesomeIcons.google,
                       color: Colors.red,
                       size: 18,
@@ -163,9 +176,9 @@ class _LogInScreenState extends State<LogInScreen> {
               const SizedBox(width: 20.0),
               IconButton(
                 onPressed: () {},
-                icon: CircleAvatar(
+                icon: const CircleAvatar(
                     backgroundColor: kFieldColor,
-                    child: const Icon(
+                    child: Icon(
                       FontAwesomeIcons.facebookF,
                       color: Colors.blue,
                       size: 18,

@@ -28,12 +28,6 @@ class InputFormField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // Padding(
-      //     padding: const EdgeInsets.only(top: 5, bottom: 5),
-      //     child: Text(
-      //       label,
-      //       style: const TextStyle(fontSize: 16, color: Color(0xFF5F5F5F)),
-      //     )),
       TextFormField(
         obscureText: obscureText,
         decoration: InputDecoration(

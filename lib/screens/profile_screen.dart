@@ -1,8 +1,10 @@
-import 'package:flutter/foundation.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list_v2/constants.dart';
+import 'package:todo_list_v2/widgets/image_input.dart';
 import 'package:todo_list_v2/widgets/input_field.dart';
 import 'package:todo_list_v2/screens/setting_screen.dart';
+import 'dart:io';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,184 +14,208 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late String? name, email, phone;
-  bool editingMode = false;
+  var _enteredName = '';
+  var _enteredEmail = '';
+  var _enteredPhone = '';
+  File? _pickedImage;
+  final _formKey = GlobalKey<FormState>();
 
-  @override
-  void initState() {
-    if (kDebugMode) {
-      print("$name $email $phone");
+  _saveUserInfos() async {
+    if (_formKey.currentState!.validate() && _pickedImage != null) {
+      _formKey.currentState!.save();
+      print(_enteredName);
+
+      try {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('user_images')
+            .child('$_enteredName.jpg');
+
+        await storageRef.putFile(_pickedImage!);
+        final urlImage = await storageRef.getDownloadURL();
+        print(urlImage);
+      } catch (error) {
+        print(error);
+      }
     }
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController nameController =
-        TextEditingController(text: name ?? 'not set yet');
-    TextEditingController emailController =
-        TextEditingController(text: email ?? 'not set yet');
-    TextEditingController phoneController =
-        TextEditingController(text: phone ?? 'not set yet');
-
     return SafeArea(
       child: Scaffold(
         backgroundColor: kFieldColor,
-        appBar: _buildBar(nameController),
-        body: _buildBody(nameController, emailController, phoneController),
-        resizeToAvoidBottomInset: true,
-      ),
-    );
-  }
-
-  AppBar _buildBar(TextEditingController nameController) {
-    return AppBar(
-      leading: IconButton(
-        icon: const Icon(
-          Icons.arrow_back_ios,
-          size: 20,
-        ),
-        onPressed: () {
-          Navigator.pop(context, nameController.text);
-        },
-      ),
-      centerTitle: true,
-      title: const Text(
-        'Profile',
-        style: kStyleAppBarTitle,
-      ),
-      actions: [
-        IconButton(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              size: 20,
+            ),
             onPressed: () {
-              if (editingMode) {
-                setState(() {
-                  editingMode = false;
-                });
-
-                if (kDebugMode) {
-                  print("$name $email $phone");
-                }
-              }
+              Navigator.pop(context);
             },
-            icon: editingMode ? const Icon(Icons.save) : const Icon(Icons.menu))
-      ],
-    );
-  }
-
-  Widget _buildBody(
-      TextEditingController nameController,
-      TextEditingController emailController,
-      TextEditingController phoneController) {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 50.0),
-            child: Center(child: _ProfileIconWidget()),
           ),
-          const SizedBox(
-            height: 20,
+          centerTitle: true,
+          title: const Text(
+            'Profile',
+            style: kStyleAppBarTitle,
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-              color: Colors.white,
+          actions: [
+            IconButton(
+              onPressed: _saveUserInfos,
+              icon: const Icon(Icons.save_alt_rounded),
             ),
-            child: Column(
-              children: [
-                InputFormField(
-                  label: 'Your Name',
-                  hint: 'Ahmed Salem',
-                  prefixIcon: const Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  textInputType: TextInputType.name,
-                  validator: (value) {},
-                  onSave: (value) {},
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              ImageInput(
+                onPickImage: (selectedImage) {
+                  _pickedImage = selectedImage;
+                },
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
+                decoration: const BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30)),
+                  color: Colors.white,
                 ),
-                const SizedBox(height: 10),
-                InputFormField(
-                  label: 'Email',
-                  hint: 'Ahmed@gmail.com',
-                  prefixIcon: const Icon(
-                    Icons.email,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                  textInputType: TextInputType.emailAddress,
-                  validator: (value) {},
-                  onSave: (value) {},
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                InputFormField(
-                  label: 'Phone',
-                  hint: '201204999542',
-                  prefixIcon: const Icon(
-                    Icons.phone,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                  textInputType: TextInputType.number,
-                  validator: (value) {},
-                  onSave: (value) {},
-                ),
-                const SizedBox(
-                  height: 100,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SettingScreen()));
-                  },
-                  child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(20)),
-                        color: kFieldColor,
+                child: Column(
+                  children: [
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Your Name',
+                            style: TextStyle(
+                                fontSize: 16, color: Color(0xFF5F5F5F)),
+                          ),
+                          const SizedBox(height: 5),
+                          InputFormField(
+                            label: 'Your Name',
+                            hint: 'User name',
+                            prefixIcon: const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                            textInputType: TextInputType.name,
+                            validator: (value) {
+                              if (value == null ||
+                                  value.isEmpty ||
+                                  value.trim().length <= 1 ||
+                                  value.trim().length >= 50) {
+                                return 'Please enter a valid name';
+                              }
+                              return null;
+                            },
+                            onSave: (value) {
+                              _enteredName = value!;
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Email',
+                            style: TextStyle(
+                                fontSize: 16, color: Color(0xFF5F5F5F)),
+                          ),
+                          const SizedBox(height: 5),
+                          InputFormField(
+                            label: 'Email',
+                            hint: 'User@gmail.com',
+                            prefixIcon: const Icon(
+                              Icons.email,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                            textInputType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null ||
+                                  value.isEmpty ||
+                                  !value.contains('@') ||
+                                  value.trim().length >= 50) {
+                                return 'Please enter a valid email address';
+                              }
+                              return null;
+                            },
+                            onSave: (value) {
+                              _enteredEmail = value!;
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Phone',
+                            style: TextStyle(
+                                fontSize: 16, color: Color(0xFF5F5F5F)),
+                          ),
+                          InputFormField(
+                            label: 'Phone',
+                            hint: '201204999542',
+                            prefixIcon: const Icon(
+                              Icons.phone,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                            textInputType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null ||
+                                  value.isEmpty ||
+                                  value.length < 10 ||
+                                  value.length > 10) {
+                                return 'Please enter a valid number';
+                              }
+                              return null;
+                            },
+                            onSave: (value) {
+                              _enteredPhone = value!;
+                            },
+                          ),
+                        ],
                       ),
-                      child: const ListTile(
-                        leading: Icon(Icons.settings, color: Colors.white),
-                        title: Text(
-                          'Settings',
-                        ),
-                        trailing: Icon(
-                          Icons.arrow_forward_ios,
-                          color: Colors.white,
-                        ),
-                      )),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.09),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SettingScreen()));
+                      },
+                      child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(20)),
+                            color: kFieldColor,
+                          ),
+                          child: const ListTile(
+                            leading: Icon(Icons.settings, color: Colors.white),
+                            title: Text(
+                              'Settings',
+                            ),
+                            trailing: Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.white,
+                            ),
+                          )),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.1,
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.1,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileIconWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const CircleAvatar(
-      radius: 50,
-      backgroundColor: Colors.white,
-      child: Icon(
-        Icons.person,
-        size: 60,
-        color: Color.fromARGB(255, 210, 210, 210),
+        ),
       ),
     );
   }

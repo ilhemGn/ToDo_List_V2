@@ -17,25 +17,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String? name;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  // refreshTodos() async {
-  //   //todos = await DatabaseService.instance.readAllNotes();
-  //   setState(() async {
-  //     Provider.of<TaskData>(context).todos =
-  //         await DatabaseService.instance.readAllNotes();
-
-  //   });
-  // }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
@@ -45,16 +26,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               GestureDetector(
-                onTap: () async {
-                  var userName = await Navigator.push(
+                onTap: () {
+                  Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => const ProfileScreen()));
-                  if (userName != null) {
-                    setState(() {
-                      name = userName;
-                    });
-                  }
                 },
                 child: Container(
                   height: 90,

@@ -1,9 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todo_list_v2/constants.dart';
 import 'package:flutter/cupertino.dart';
-
-import 'package:todo_list_v2/screens/welcome_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -107,6 +106,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 title: const Text('Add List Notification'),
                 trailing: PopupMenuButton<String>(
                   surfaceTintColor: Colors.white,
+
                   icon: Icon(Icons.arrow_drop_down_rounded,
                       color: kIconColor, size: 30),
                   initialValue: selectedMenu,
@@ -150,10 +150,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     borderRadius: BorderRadius.all(Radius.circular(20))),
               ),
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const WelcomeScreen()));
+                FirebaseAuth.instance.signOut();
               },
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
