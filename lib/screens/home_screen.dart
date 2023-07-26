@@ -27,7 +27,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final fcm = FirebaseMessaging.instance;
     await fcm.requestPermission();
     final token = await fcm.getToken();
-    print(token);
+   // print(token);
     //notification text to add a new task
     await fcm.subscribeToTopic('addTask');
   }

@@ -6,15 +6,15 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class ImageInput extends StatefulWidget {
-  ImageInput(
+  const ImageInput(
       {super.key,
       required this.onPickImage,
       this.backgroundColor,
       this.firstImage});
 
   final void Function(File) onPickImage;
-  Color? backgroundColor;
-  String? firstImage;
+  final Color? backgroundColor;
+  final String? firstImage;
 
   @override
   State<ImageInput> createState() => _ImageInputState();
