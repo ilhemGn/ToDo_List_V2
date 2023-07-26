@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list_v2/constants.dart';
 import 'package:todo_list_v2/models/task_model.dart';
+import 'package:todo_list_v2/screens/home_screen.dart';
 import 'package:todo_list_v2/widgets/input_field.dart';
 import 'package:todo_list_v2/widgets/round_button.dart';
 import 'package:todo_list_v2/providers/tasks_provider.dart';
@@ -29,8 +30,17 @@ class _TaskDetailsState extends ConsumerState<TaskDetails> {
   String _taskStartTime = '18:00';
   String _taskEndTime = '19:00';
   String _taskDescript = '';
+  bool _isLoading = false;
 
-  int selectedIndex = 0;
+  late int selectedIndex;
+
+  @override
+  void initState() {
+    selectedIndex =
+        widget.task != null ? colors.indexOf(widget.task!.color) : 0;
+    super.initState();
+  }
+
   void _addTask() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -49,6 +59,9 @@ class _TaskDetailsState extends ConsumerState<TaskDetails> {
           endTime: _taskEndTime,
           color: taskColor);
 
+      setState(() {
+        _isLoading = true;
+      });
       ref.read(userTasksProvider.notifier).addTask(newTask);
       try {
         //store new task in firestore
@@ -64,6 +77,65 @@ class _TaskDetailsState extends ConsumerState<TaskDetails> {
         });
       } catch (error) {
         print(error);
+      }
+      setState(() {
+        _isLoading = false;
+      });
+    }
+    return;
+  }
+
+  void _updateTask() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      Color taskColor = colors.elementAt(selectedIndex);
+      String newHexColor = taskColor
+          .toString()
+          .replaceAll('Color', "")
+          .replaceAll("(", "")
+          .replaceAll(")", "");
+      Task updatedTask = Task(
+          id: userId + _taskTitle,
+          title: _taskTitle,
+          description: _taskDescript,
+          startTime: _taskStartTime,
+          endTime: _taskEndTime,
+          color: taskColor);
+      ref.read(userTasksProvider.notifier).updateTask(updatedTask);
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        //update task in firestore
+        var taskRef = FirebaseFirestore.instance
+            .collection('tasks')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+        for (var task in (await taskRef).docs) {
+          if (task['id'] == widget.task!.id) {
+            task.reference.update({
+              'id': updatedTask.id,
+              'title': updatedTask.title,
+              'description': updatedTask.description,
+              'start time': updatedTask.startTime,
+              'end time': updatedTask.endTime,
+              'color': newHexColor,
+            });
+          }
+        }
+      } catch (error) {
+        print(error);
+      }
+      setState(() {
+        _isLoading = false;
+      });
+      //update task in provider
+      if (mounted) {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()));
       }
     }
     return;
@@ -94,13 +166,13 @@ class _TaskDetailsState extends ConsumerState<TaskDetails> {
       body: SafeArea(
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.all(20),
+            Padding(
+              padding: const EdgeInsets.all(20),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Add Task',
-                  style: TextStyle(
+                  widget.task != null ? 'Edit Task' : 'Add Task',
+                  style: const TextStyle(
                       fontSize: 30,
                       color: Colors.white,
                       fontWeight: FontWeight.bold),
@@ -189,8 +261,7 @@ class _TaskDetailsState extends ConsumerState<TaskDetails> {
                         ),
                         const SizedBox(height: 20),
                         InputFormField(
-                          initialValue:
-                              widget.task?.description ?? 'tiktak.....',
+                          initialValue: widget.task?.description ?? '',
                           maxLines: 6,
                           hint: 'Content....',
                           prefixIcon: null,
@@ -224,13 +295,7 @@ class _TaskDetailsState extends ConsumerState<TaskDetails> {
                               itemCount: colors.length,
                               itemBuilder: (context, index) {
                                 return TaskColor(
-                                  isSelected:
-                                      widget.task?.color == colors[index]
-                                          ? true
-                                          : selectedIndex == index &&
-                                                  widget.task == null
-                                              ? true
-                                              : false,
+                                  isSelected: selectedIndex == index,
                                   color: colors[index],
                                   pressFunct: () {
                                     setState(() {
@@ -242,8 +307,16 @@ class _TaskDetailsState extends ConsumerState<TaskDetails> {
                         ),
                         const SizedBox(height: 40),
                         Align(
-                            alignment: Alignment.bottomRight,
-                            child: RoundButton(text: 'Add', onPress: _addTask)),
+                          alignment: Alignment.bottomRight,
+                          child: RoundButton(
+                            widget: _isLoading
+                                ? const CircularProgressIndicator()
+                                : null,
+                            text: widget.task != null ? 'save' : 'Add',
+                            onPress:
+                                widget.task != null ? _updateTask : _addTask,
+                          ),
+                        ),
                       ],
                     ),
                   ),

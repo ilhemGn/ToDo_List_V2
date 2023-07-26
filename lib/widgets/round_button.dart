@@ -5,9 +5,8 @@ class RoundButton extends StatelessWidget {
   final String text;
   final Color? colorText;
   final Color? backgroundColor;
-
-  /// To verifyyy
   final Function() onPress;
+  final Widget? widget;
 
   const RoundButton({
     super.key,
@@ -15,6 +14,7 @@ class RoundButton extends StatelessWidget {
     this.colorText = Colors.white,
     required this.onPress,
     this.backgroundColor = kStartColor,
+    this.widget,
   });
 
   @override
@@ -26,7 +26,7 @@ class RoundButton extends StatelessWidget {
           backgroundColor: backgroundColor,
           shadowColor: kStartColor,
         ),
-        child: Text(
+        child:widget?? Text(
           text,
           style: TextStyle(
             color: colorText,

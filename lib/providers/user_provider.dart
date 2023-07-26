@@ -20,7 +20,7 @@ class UserNotifier extends StateNotifier<User> {
     state = state.copyWith(image: image);
   }
 
-  void changeAllUserData(String name, String email, int phone, String image) {
+  void updateUserData(String name, String email, int phone, String image) {
     state = state.copyWith(
       name: name,
       email: email,

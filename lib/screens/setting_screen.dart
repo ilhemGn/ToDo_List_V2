@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:todo_list_v2/constants.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:todo_list_v2/screens/welcome_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -12,7 +13,7 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
-  bool _switchValueAdd = false;
+  bool _switchValueAdd = true;
   bool _switchValueTime = false;
   String? selectedMenu;
 
@@ -21,6 +22,7 @@ class _SettingScreenState extends State<SettingScreen> {
     return Scaffold(
       backgroundColor: kFieldColor,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         leading: IconButton(
             onPressed: () {
               Navigator.pop(context);
@@ -59,7 +61,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     contentPadding: const EdgeInsets.all(0),
                     leading: Icon(FontAwesomeIcons.circlePlus,
                         color: kIconColor, size: 18),
-                    title: const Text('Add List Notification'),
+                    title: const Text('Add Task Notification'),
                     trailing: CupertinoSwitch(
                       value: _switchValueAdd,
                       onChanged: (value) {
@@ -79,7 +81,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     contentPadding: const EdgeInsets.all(0),
                     leading: Icon(FontAwesomeIcons.solidCircleCheck,
                         color: kIconColor, size: 18),
-                    title: const Text('Time List Notification'),
+                    title: const Text('Task Time Notification'),
                     trailing: CupertinoSwitch(
                       value: _switchValueTime,
                       onChanged: (value) {
@@ -151,6 +153,10 @@ class _SettingScreenState extends State<SettingScreen> {
               ),
               onPressed: () {
                 FirebaseAuth.instance.signOut();
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const WelcomeScreen()));
               },
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,

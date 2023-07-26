@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list_v2/constants.dart';
 import 'package:todo_list_v2/models/task_model.dart';
@@ -22,9 +23,19 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   late List<Task> userTasks;
 
+  void _setUpNotification() async {
+    final fcm = FirebaseMessaging.instance;
+    await fcm.requestPermission();
+    final token = await fcm.getToken();
+    print(token);
+    //notification text to add a new task
+    await fcm.subscribeToTopic('addTask');
+  }
+
   @override
   void initState() {
     _getUserData();
+    _setUpNotification();
     super.initState();
   }
 
@@ -36,7 +47,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .doc(currentUser!.uid)
         .get();
     //update user data in provider
-    ref.read(userProvider.notifier).changeAllUserData(
+    ref.read(userProvider.notifier).updateUserData(
         userData.data()!['username'],
         userData.data()!['email'],
         int.parse(userData.data()!['phone']),
@@ -86,7 +97,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       leading: CircleAvatar(
                         backgroundColor: kStartColor,
                         backgroundImage: NetworkImage(userImage),
-                        child: const Icon(Icons.person, color: Colors.white),
+                        //child: const Icon(Icons.person, color: Colors.white),
                       ),
                       title: Text('Hi $username', style: kStyleAppBarTitle),
                       subtitle: const Text('Good Morning'),
@@ -146,9 +157,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ],
               ),
               Expanded(
-                child: TasksList(
-                  todos: userTasks,
-                ),
+                child: userTasks.isEmpty
+                    ? const Center(
+                        child: Text(' Start adding some tasks ',
+                            style: TextStyle(
+                              // add style //
+                              color: Colors.grey,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            )),
+                      )
+                    : TasksList(
+                        todos: userTasks,
+                      ),
               )
             ],
           ),

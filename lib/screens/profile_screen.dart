@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list_v2/constants.dart';
@@ -16,27 +18,73 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   var _enteredName = '';
   var _enteredEmail = '';
   var _enteredPhone = '';
   File? _pickedImage;
-  final _formKey = GlobalKey<FormState>();
+  bool _isSaving = false;
 
-  _saveUserInfos() async {
-    if (_formKey.currentState!.validate() && _pickedImage != null) {
+  void _saveUserData() async {
+    if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      print(_enteredName);
-
+      setState(() {
+        _isSaving = true;
+      });
+      String urlImage;
       try {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('user_images')
-            .child('$_enteredName.jpg');
+        if (_pickedImage != null) {
+          final storageRef = FirebaseStorage.instance
+              .ref()
+              .child('user_images')
+              .child('$_enteredName.jpg');
 
-        await storageRef.putFile(_pickedImage!);
-        final urlImage = await storageRef.getDownloadURL();
+          await storageRef.putFile(_pickedImage!);
+          urlImage = await storageRef.getDownloadURL();
+
+          //store user infos in provider
+          ref.read(userProvider.notifier).updateUserData(
+              _enteredName, _enteredEmail, int.parse(_enteredPhone), urlImage);
+
+          final user = FirebaseAuth.instance.currentUser!;
+          //update user image in firestore
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .update({
+            'username': _enteredName,
+            'email': _enteredEmail,
+            'phone': _enteredPhone,
+            'image': urlImage,
+          });
+        } else {
+          //store user infos in provider
+          ref.read(userProvider.notifier).updateUserData(
+              _enteredName,
+              _enteredEmail,
+              int.parse(_enteredPhone),
+              ref.watch(userProvider).image);
+
+          final user = FirebaseAuth.instance.currentUser!;
+          //update user image in firestore
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .update({
+            'username': _enteredName,
+            'email': _enteredEmail,
+            'phone': _enteredPhone,
+          });
+        }
       } catch (error) {
         print(error);
+      }
+      setState(() {
+        _isSaving = false;
+      });
+      if (mounted) {
+        Navigator.pop(context);
       }
     }
   }
@@ -64,8 +112,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           actions: [
             IconButton(
-              onPressed: _saveUserInfos,
-              icon: const Icon(Icons.save_alt_rounded),
+              onPressed: _saveUserData,
+              icon: _isSaving
+                  ? const CircularProgressIndicator()
+                  : const Icon(Icons.save_alt_rounded),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list_v2/constants.dart';
+import 'package:todo_list_v2/screens/home_screen.dart';
 
 import 'package:todo_list_v2/screens/register_screen.dart';
 import 'package:todo_list_v2/widgets/input_field.dart';
@@ -20,14 +21,32 @@ class _LogInScreenState extends State<LogInScreen> {
   final _formKey = GlobalKey<FormState>();
   var _enteredEmail = '';
   var _enteredPassword = '';
+  bool _islogin = false;
 
   void _signIn() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
+      setState(() {
+        _islogin = true;
+      });
+
       try {
         final userCredential = await _firebase.signInWithEmailAndPassword(
             email: _enteredEmail, password: _enteredPassword);
+
+        if (userCredential.user != null) {
+          if (mounted) {
+            Navigator.of(context)
+                .pushReplacement(MaterialPageRoute(builder: (context) {
+              return const HomeScreen();
+            }));
+          }
+        }
+
+        setState(() {
+          _islogin = false;
+        });
       } on FirebaseAuthException catch (error) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -152,6 +171,11 @@ class _LogInScreenState extends State<LogInScreen> {
                 ),
                 const SizedBox(height: 30.0),
                 RoundButton(
+                  widget: _islogin
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
+                      : null,
                   text: 'Sign In!',
                   backgroundColor: kStartColor,
                   colorText: const Color(0xFF524E48),

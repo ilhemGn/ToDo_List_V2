@@ -26,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   var _enteredPhone = '';
   var _enteredPassword = '';
   File? _pickedImage;
+  bool _islogin = false;
 
   void _register() async {
     if (_pickedImage == null) {
@@ -37,6 +38,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (_formKey.currentState!.validate() && _pickedImage != null) {
       _formKey.currentState!.save();
+
+      setState(() {
+        _islogin = true;
+      });
 
       try {
         final userCredentials = await _firebase.createUserWithEmailAndPassword(
@@ -66,6 +71,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(error.message ?? 'Athentication failed')));
       }
+
+      setState(() {
+        _islogin = false;
+      });
     }
     return;
   }
@@ -210,6 +219,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       )),
                   const SizedBox(height: 40.0),
                   RoundButton(
+                    widget: _islogin
+                        ? const CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                        : null,
                     text: 'Register',
                     backgroundColor: kStartColor,
                     colorText: const Color(0xFF524E48),

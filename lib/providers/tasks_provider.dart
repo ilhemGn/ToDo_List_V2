@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 class UserTasksNotifier extends StateNotifier<List<Task>> {
   UserTasksNotifier() : super([]);
 
-  void addTask(Task task) {
-    state = [task, ...state];
+  void addTask(Task newTask) {
+    state = [newTask, ...state];
   }
 
   void loadUserTasks(QuerySnapshot<Map<String, dynamic>> tasksLoaded) {
@@ -35,8 +35,9 @@ class UserTasksNotifier extends StateNotifier<List<Task>> {
     state = state.where((tk) => tk.id != task.id).toList();
   }
 
-  void updateTask(Task task) {
-    state = state.map((tk) => tk.id == task.id ? task : tk).toList();
+  void updateTask(Task updatedTask) {
+    state = state.where((tk) => tk.id != updatedTask.id).toList();
+    state = [updatedTask, ...state];
   }
 }
 
