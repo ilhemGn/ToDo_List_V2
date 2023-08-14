@@ -1,6 +1,8 @@
 # Todo_list_v2
 is a versatile todo list app crafted with Flutter, designed to help you efficiently plan and organize your day. Seamlessly manage your tasks, assign specific details like names, descriptions, start and end times, and preferred colors, and stay on top of your daily agenda. 
 
+[![Alt text](https://i.suar.me/VW1MN/l)]()
+
 ### Efficient Task Management: 
 Stay organized with Todo List intuitive task management system. Easily create, edit, and delete tasks, ensuring you can prioritize your day effectively.
 ### Daily Planning: 
